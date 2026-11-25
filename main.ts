@@ -8,16 +8,27 @@ import { join } from "node:path";
 const LINE =
   "I've escalated your ticket to Tier 2 \u2014 that's me again, but I'll answer in a deeper voice.";
 
+// The gate allows 1-199 characters; keep the bounds named so a later tweak
+// to the line cannot silently break the entry.
+const MIN_CHARS = 1;
+const MAX_CHARS = 199;
+
 function main(): void {
-  // Guard: the entry must stay exactly one line, 1-199 chars, no whitespace-only.
+  // Guard: the entry must stay exactly one line, 1-199 chars, no whitespace-only,
+  // and no leading/trailing whitespace (the judge reads the file as submitted).
   if (LINE.includes("\n") || LINE.includes("\r")) {
     throw new Error("entry line must be a single line");
   }
-  if (LINE.length < 1 || LINE.length > 199) {
-    throw new Error(`entry line must be 1-199 chars, got ${LINE.length}`);
+  if (LINE.length < MIN_CHARS || LINE.length > MAX_CHARS) {
+    throw new Error(
+      `entry line must be ${MIN_CHARS}-${MAX_CHARS} chars, got ${LINE.length}`,
+    );
   }
   if (LINE.trim().length === 0) {
     throw new Error("entry line must not be only whitespace");
+  }
+  if (LINE !== LINE.trim()) {
+    throw new Error("entry line must not have leading or trailing whitespace");
   }
   const outDir = process.env.MAKEFUN_OUTPUT_DIR ?? "/output";
   mkdirSync(outDir, { recursive: true });
